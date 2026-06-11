@@ -28,11 +28,11 @@ class Shader {
 
 public:
   Shader(const std::string &vertex_path, const std::string &fragment_path) {
-    std::string vertex_source = loadFile(vertex_path);
-    std::string fragment_source = loadFile(fragment_path);
+    std::string vertex_source = load_file(vertex_path);
+    std::string fragment_source = load_file(fragment_path);
 
-    u32 vs = compileShader(GL_VERTEX_SHADER, vertex_source);
-    u32 fs = compileShader(GL_FRAGMENT_SHADER, fragment_source);
+    u32 vs = compile_shader(GL_VERTEX_SHADER, vertex_source);
+    u32 fs = compile_shader(GL_FRAGMENT_SHADER, fragment_source);
 
     id = glCreateProgram();
     glAttachShader(id, vs);
@@ -54,7 +54,7 @@ public:
 
   ~Shader() { glDeleteProgram(id); }
 
-  std::string loadFile(const std::string &path) {
+  std::string load_file(const std::string &path) {
     std::ifstream file(path);
     std::stringstream buffer;
 
@@ -62,7 +62,7 @@ public:
     return buffer.str();
   }
 
-  u32 compileShader(u32 type, const std::string &source) {
+  u32 compile_shader(u32 type, const std::string &source) {
     u32 shader = glCreateShader(type);
     const char *src = source.c_str();
 
@@ -83,17 +83,17 @@ public:
 
   void use() { glUseProgram(id); }
 
-  void setMat4(const std::string &name, const glm::mat4 &mat) {
+  void set_mat4(const std::string &name, const glm::mat4 &mat) {
     GLint loc = glGetUniformLocation(id, name.c_str());
     glUniformMatrix4fv(loc, 1, GL_FALSE, &mat[0][0]);
   }
 
-  void setVec3(const std::string &name, const glm::vec3 &vec) {
+  void set_vec3(const std::string &name, const glm::vec3 &vec) {
     GLint loc = glGetUniformLocation(id, name.c_str());
     glUniform3fv(loc, 1, &vec[0]);
   }
 
-  void setFloat(const std::string &name, const f32 &f) {
+  void set_float(const std::string &name, const f32 &f) {
     GLint loc = glGetUniformLocation(id, name.c_str());
     glUniform1fv(loc, 1, &f);
   }
@@ -207,6 +207,9 @@ public:
         case SDLK_SPACE:
           key.space = true;
           break;
+        case SDLK_ESCAPE:
+          running = false;
+          break;
         }
         break;
       case SDL_EVENT_KEY_UP:
@@ -306,7 +309,7 @@ public:
 
     glm::mat4 projection = glm::mat4(1.0f);
     projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
-    shader->setMat4("projection", projection);
+    shader->set_mat4("projection", projection);
 
     // glm::mat4 view = glm::mat4(1.0f);
     // view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
@@ -322,7 +325,7 @@ public:
     glm::mat4 view = glm::lookAt(camera_pos, camera_pos + front,
                                  glm::vec3(0.0f, 1.0f, 0.0f));
 
-    f32 camera_speed = 0.03f;
+    f32 camera_speed = 3.0f * delta_time;
 
     if (key.w) {
       camera_pos += camera_speed * front;
@@ -352,37 +355,37 @@ public:
       camera_pos += glm::vec3(0.0f, 1.0f, 0.0f) * camera_speed;
     }
 
-    shader->setMat4("view", view);
+    shader->set_mat4("view", view);
 
     glBindVertexArray(VAO);
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0, 0, 0));
-    shader->setMat4("model", model);
+    shader->set_mat4("model", model);
 
     const GLvoid *offset = 0;
 
-    shader->setVec3("custom_color", glm::vec3(0.0f, 1.0f, 0.0f));
+    shader->set_vec3("custom_color", glm::vec3(0.0f, 1.0f, 0.0f));
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, offset);
     offset = (const GLvoid *)((uintptr_t)offset + 3 * sizeof(u32));
 
-    shader->setVec3("custom_color", glm::vec3(1.0f, 0.0f, 0.0f));
+    shader->set_vec3("custom_color", glm::vec3(1.0f, 0.0f, 0.0f));
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, offset);
     offset = (const GLvoid *)((uintptr_t)offset + 3 * sizeof(u32));
 
-    shader->setVec3("custom_color", glm::vec3(0.0f, 0.0f, 1.0f));
+    shader->set_vec3("custom_color", glm::vec3(0.0f, 0.0f, 1.0f));
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, offset);
     offset = (const GLvoid *)((uintptr_t)offset + 3 * sizeof(u32));
 
-    shader->setVec3("custom_color", glm::vec3(1.0f, 0.0f, 1.0f));
+    shader->set_vec3("custom_color", glm::vec3(1.0f, 0.0f, 1.0f));
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, offset);
     offset = (const GLvoid *)((uintptr_t)offset + 3 * sizeof(u32));
 
-    shader->setVec3("custom_color", glm::vec3(1.0f, 1.0f, 0.0f));
+    shader->set_vec3("custom_color", glm::vec3(1.0f, 1.0f, 0.0f));
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, offset);
     offset = (const GLvoid *)((uintptr_t)offset + 3 * sizeof(u32));
 
-    shader->setVec3("custom_color", glm::vec3(0.0f, 1.0f, 1.0f));
+    shader->set_vec3("custom_color", glm::vec3(0.0f, 1.0f, 1.0f));
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, offset);
 
     SDL_GL_SwapWindow(window);
