@@ -102,7 +102,7 @@ public:
 class Engine {
   SDL_Window *window = nullptr;
   std::unique_ptr<Shader> shader;
-  SDL_GLContext glContext = nullptr;
+  SDL_GLContext gl_context = nullptr;
   u32 width = 1280;
   u32 height = 720;
   bool running = false;
@@ -114,19 +114,19 @@ class Engine {
 
   u64 t_last = 0;
   u64 t_now = SDL_GetPerformanceCounter();
-  f64 deltaTime = 0;
+  f64 delta_time = 0;
 
   Key key;
 
-  glm::vec3 cameraPos = {0.0f, 0.0f, 3.0f};
+  glm::vec3 camera_pos = {0.0f, 0.0f, 3.0f};
 
 public:
   ~Engine() {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
 
-    if (glContext)
-      SDL_GL_DestroyContext(glContext);
+    if (gl_context)
+      SDL_GL_DestroyContext(gl_context);
 
     if (window)
       SDL_DestroyWindow(window);
@@ -153,14 +153,14 @@ public:
       return false;
     }
 
-    glContext = SDL_GL_CreateContext(window);
+    gl_context = SDL_GL_CreateContext(window);
 
-    if (!glContext) {
+    if (!gl_context) {
       std::cerr << "SDL_GL_CreateContext failed: " << SDL_GetError() << '\n';
       return false;
     }
 
-    if (!SDL_GL_MakeCurrent(window, glContext)) {
+    if (!SDL_GL_MakeCurrent(window, gl_context)) {
       std::cerr << "SDL_GL_MakeCurrent failed: " << SDL_GetError() << '\n';
       return false;
     }
@@ -293,7 +293,7 @@ public:
     t_now = SDL_GetPerformanceCounter();
 
     f64 freq = (f64)SDL_GetPerformanceFrequency();
-    deltaTime = (f64)(t_now - t_last) / freq;
+    delta_time = (f64)(t_now - t_last) / freq;
   };
 
   void render() {
@@ -313,46 +313,43 @@ public:
 
     glm::vec3 front;
 
-    // UNDERSTAND THIS !!! IMPORTANT
     front.x = cos(yaw) * cos(pitch);
     front.y = sin(pitch);
     front.z = sin(yaw) * cos(pitch);
 
     front = glm::normalize(front);
 
-    glm::mat4 view =
-        glm::lookAt(cameraPos, cameraPos + front, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 view = glm::lookAt(camera_pos, camera_pos + front,
+                                 glm::vec3(0.0f, 1.0f, 0.0f));
 
-    f32 cameraSpeed = 0.03f;
+    f32 camera_speed = 0.03f;
 
     if (key.w) {
-      cameraPos += cameraSpeed * front;
+      camera_pos += camera_speed * front;
     }
 
     if (key.s) {
-      cameraPos -= cameraSpeed * front;
+      camera_pos -= camera_speed * front;
     }
 
-    // UNDERSTAND THIS !!! IMPORTANT
     if (key.a) {
-      cameraPos -=
+      camera_pos -=
           glm::normalize(glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f))) *
-          cameraSpeed;
+          camera_speed;
     }
 
-    // UNDERSTAND THIS !!! IMPORTANT
     if (key.d) {
-      cameraPos +=
+      camera_pos +=
           glm::normalize(glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f))) *
-          cameraSpeed;
+          camera_speed;
     }
 
     if (key.shift) {
-      cameraPos -= glm::vec3(0.0f, 1.0f, 0.0f) * cameraSpeed;
+      camera_pos -= glm::vec3(0.0f, 1.0f, 0.0f) * camera_speed;
     }
 
     if (key.space) {
-      cameraPos += glm::vec3(0.0f, 1.0f, 0.0f) * cameraSpeed;
+      camera_pos += glm::vec3(0.0f, 1.0f, 0.0f) * camera_speed;
     }
 
     shader->setMat4("view", view);
@@ -365,27 +362,27 @@ public:
 
     const GLvoid *offset = 0;
 
-    shader->setVec3("u_customColor", glm::vec3(0.0f, 1.0f, 0.0f));
+    shader->setVec3("custom_color", glm::vec3(0.0f, 1.0f, 0.0f));
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, offset);
     offset = (const GLvoid *)((uintptr_t)offset + 3 * sizeof(u32));
 
-    shader->setVec3("u_customColor", glm::vec3(1.0f, 0.0f, 0.0f));
+    shader->setVec3("custom_color", glm::vec3(1.0f, 0.0f, 0.0f));
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, offset);
     offset = (const GLvoid *)((uintptr_t)offset + 3 * sizeof(u32));
 
-    shader->setVec3("u_customColor", glm::vec3(0.0f, 0.0f, 1.0f));
+    shader->setVec3("custom_color", glm::vec3(0.0f, 0.0f, 1.0f));
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, offset);
     offset = (const GLvoid *)((uintptr_t)offset + 3 * sizeof(u32));
 
-    shader->setVec3("u_customColor", glm::vec3(1.0f, 0.0f, 1.0f));
+    shader->setVec3("custom_color", glm::vec3(1.0f, 0.0f, 1.0f));
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, offset);
     offset = (const GLvoid *)((uintptr_t)offset + 3 * sizeof(u32));
 
-    shader->setVec3("u_customColor", glm::vec3(1.0f, 1.0f, 0.0f));
+    shader->setVec3("custom_color", glm::vec3(1.0f, 1.0f, 0.0f));
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, offset);
     offset = (const GLvoid *)((uintptr_t)offset + 3 * sizeof(u32));
 
-    shader->setVec3("u_customColor", glm::vec3(0.0f, 1.0f, 1.0f));
+    shader->setVec3("custom_color", glm::vec3(0.0f, 1.0f, 1.0f));
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, offset);
 
     SDL_GL_SwapWindow(window);
